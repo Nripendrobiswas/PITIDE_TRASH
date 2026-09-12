@@ -2,10 +2,7 @@ __pycache__/
 *.pyc
 *.pyo
 .ipynb_checkpoints/
-results/all_run.log
-results/all_err.log
-results/pid.txt
-results/tune_*.log
-results/tune_*_err.log
-results/*.npz
+# generated outputs (regenerate with: python src/eda.py && python src/train.py --all && python src/report.py)
+# kept untracked so pulling on another machine (e.g. Kaggle) never conflicts with local runs
+results/
 *.egg-info/
