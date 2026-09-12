@@ -16,12 +16,16 @@ def seasonal_naive(xp, horizon):
 
 
 class LSTMModel(nn.Module):
-    def __init__(self, n_hist, n_fut, n_static, l_hist, h_out, stats,
-                 hidden=96, layers=2, dropout=0.1):
+    def __init__(self, n_hist, n_fut, n_static, l_hist, h_out, stats, hidden=96, layers=2, dropout=0.1):
         super().__init__()
         self.stats = stats
-        self.lstm = nn.LSTM(n_hist + 1, hidden, layers, batch_first=True,
-                            dropout=dropout if layers > 1 else 0.0)
+        self.lstm = nn.LSTM(
+            n_hist + 1,
+            hidden,
+            layers,
+            batch_first=True,
+            dropout=dropout if layers > 1 else 0.0
+        )
         self.fut_proj = nn.Linear((n_fut + 1) * h_out, hidden)
         self.head = nn.Linear(2 * hidden, h_out)
 
