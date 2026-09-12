@@ -1,0 +1,7 @@
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+optuna>=3.5
+# PyTorch: on Kaggle the preinstalled CUDA build is used automatically
+# (device is resolved via torch.cuda.is_available()). Locally (CPU-only):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu

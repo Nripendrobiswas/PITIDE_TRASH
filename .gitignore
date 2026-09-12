@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+results/all_run.log
+results/all_err.log
+results/pid.txt
+results/tune_*.log
+results/tune_*_err.log
+results/*.npz
+*.egg-info/

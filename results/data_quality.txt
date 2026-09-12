@@ -1,0 +1,11 @@
+Data quality report - BangladeshData_2016_2024.csv
+=======================================================
+rows: 78912, hourly, 2016-01-01 00:00:00 .. 2024-12-31 23:00:00
+missing values: 0, duplicated timestamps: 0
+missing hours (gaps): 0
+Generation(MW) identical to Demand(MW): 56002 rows (71.0%) -> column unusable for a power-balance constraint; modeling uses Demand(MW) only.
+demand spike rows cleaned (isolated glitches / implausible values): 74
+top raw demand jumps: 2024-05-01 06:00:00 = 13710 MW; 2024-08-08 00:00:00 = 13697 MW; 2024-08-08 01:00:00 = 13407 MW; 2024-07-25 12:00:00 = 13314 MW; 2023-05-13 20:00:00 = 12915 MW
+temperature: mean 25.5 C, max 43.3 C; hours with T > 25 C (hot regime): 64.6%
+annual peak demand (GW): 2016: 9.04, 2017: 9.49, 2018: 11.57, 2019: 12.89, 2020: 12.89, 2021: 13.79, 2022: 14.78, 2023: 16.22, 2024: 17.20
+annual min demand (GW): 2016: 1.76, 2017: 3.20, 2018: 1.77, 2019: 3.50, 2020: 2.68, 2021: 4.19, 2022: 2.83, 2023: 4.79, 2024: 3.65
