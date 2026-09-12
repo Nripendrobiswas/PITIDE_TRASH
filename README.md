@@ -102,7 +102,12 @@ plus calendar/static covariates, predict `H ∈ {24, 48, 72, 168}` h.
 
 ## 🧠 Method
 
-### PG-TiDE architecture
+### PITiDE / PG-TiDE flow chart
+
+![PG-TiDE architecture flow chart](assets/fig7_pi_tide_architecture.png)
+
+<details>
+<summary>Machine-readable architecture spec (Mermaid source, matches <code>src/models/</code>)</summary>
 
 ```mermaid
 flowchart LR
@@ -114,7 +119,6 @@ flowchart LR
   SE --> D
   F[Future known covariates<br/>H h] --> D
   F --> TDR[Temporal dynamic<br/>regressor]
-  Z --> D
   D --> SUM((+))
   TDR --> SUM
   CDH[CDH future channel<br/>× abs w_h monotone<br/>thermal branch] --> SUM
@@ -122,6 +126,11 @@ flowchart LR
   P{{Physics losses<br/>L_thermal autograd · L_ramp}} -. training penalty .-> D
 ```
 
+CDH (`relu(T−25)`) is computed inside the forward pass, the static vector is
+*added* to encoder/decoder hidden layers, the temporal dynamic regressor is a
+parallel additive branch, and the physics losses act during training only.
+
+</details>
 
 Two mechanisms distinguish **PG-TiDE** from vanilla TiDE:
 
