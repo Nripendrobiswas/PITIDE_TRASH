@@ -22,8 +22,10 @@ class PhysicsLoss:
     def thermal(self, model, xp, xf, s):
         """Mean negative d(sum_h yhat)/dT at hot timesteps (autograd through CDH)."""
         xp = xp.detach().clone().requires_grad_(True)
-        out = model(xp, xf, s)
-        g = torch.autograd.grad(out.sum(), xp, create_graph=True)[0][..., IDX_T]  # (B,L)
+        # cudnn-disabled: keeps this correct for RNN-containing backbones
+        with torch.backends.cudnn.flags(enabled=False):
+            out = model(xp, xf, s)
+            g = torch.autograd.grad(out.sum(), xp, create_graph=True)[0][..., IDX_T]  # (B,L)
         raw_t = xp.detach()[..., IDX_T] * self.t_std + self.t_mean
         hot = raw_t > CDH_BASE
         denom = hot.sum().clamp(min=1)
@@ -52,15 +54,18 @@ def thermal_violation_rate(model, xp, xf, s, stats, batch=512, device="cpu"):
     neg_hits = tot_hits = 0
     was_training = model.training
     model.eval()
-    for i in range(0, len(xp), batch):
-        xb = torch.as_tensor(np.asarray(xp[i:i + batch])).to(device).clone().requires_grad_(True)
-        xfb = torch.as_tensor(np.asarray(xf[i:i + batch])).to(device)
-        sb = torch.as_tensor(np.asarray(s[i:i + batch])).to(device)
-        out = model(xb, xfb, sb)
-        g = torch.autograd.grad(out.sum(), xb)[0][..., IDX_T]
-        hot = (xb.detach()[..., IDX_T] * t_std + t_mean) > CDH_BASE
-        neg_hits += int(((g < 0) & hot).sum())
-        tot_hits += int(hot.sum())
+    # cuDNN refuses RNN backward in eval mode ("cudnn RNN backward can only be
+    # called in training mode"), so use the native PyTorch RNN path here.
+    with torch.backends.cudnn.flags(enabled=False):
+        for i in range(0, len(xp), batch):
+            xb = torch.as_tensor(np.asarray(xp[i:i + batch])).to(device).clone().requires_grad_(True)
+            xfb = torch.as_tensor(np.asarray(xf[i:i + batch])).to(device)
+            sb = torch.as_tensor(np.asarray(s[i:i + batch])).to(device)
+            out = model(xb, xfb, sb)
+            g = torch.autograd.grad(out.sum(), xb)[0][..., IDX_T]
+            hot = (xb.detach()[..., IDX_T] * t_std + t_mean) > CDH_BASE
+            neg_hits += int(((g < 0) & hot).sum())
+            tot_hits += int(hot.sum())
     if was_training:
         model.train()
     return neg_hits / max(tot_hits, 1)
