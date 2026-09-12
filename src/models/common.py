@@ -7,8 +7,12 @@ from data_pipeline import CDH_BASE, IDX_T
 class ResBlock(nn.Module):
     def __init__(self, dim, dropout):
         super().__init__()
-        self.net = nn.Sequential(nn.Linear(dim, dim), nn.ReLU(),
-                                 nn.Dropout(dropout), nn.Linear(dim, dim))
+        self.net = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(dim, dim)
+        )
 
     def forward(self, x):
         return x + self.net(x)
