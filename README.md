@@ -122,6 +122,53 @@ flowchart LR
   P{{Physics losses<br/>L_thermal autograd · L_ramp}} -. training penalty .-> D
 ```
 
+### 🏗️ Model Architecture
+
+```mermaid
+flowchart LR
+    subgraph IN["1. Input Features"]
+        S["Static Covariates<br/>(Population, GDP, Year)"]
+        X["History Window - 168h<br/>(T, RH, SP, Calendar, Demand)"]
+        F["Future Known Covariates<br/>(Horizon H h)"]
+        CDH["CDH Monotone Thermal Branch<br/>(Future Channel × |w_h|)"]
+    end
+
+    subgraph CORE["2. Core TiDE Backbone"]
+        SE["Static Encoder"]
+        E["TiDE Encoder MLP"]
+        Z[("Latent Representation (z)")]
+        D["TiDE Decoder MLP"]
+        TDR["Temporal Dynamic Regressor"]
+    end
+
+    subgraph OUT["3. Fusion & Physics Constraints"]
+        SUM(( + ))
+        Y[["Demand Forecast (MW)"]]
+        P{{"Physics Losses<br/>(L_thermal autograd · L_ramp)"}}
+    end
+
+    %% Inputs to Encoders
+    S --> SE
+    SE --> E
+    X --> E
+    E --> Z
+
+    %% Decoding Process
+    Z --> D
+    SE --> D
+    F --> D
+    F --> TDR
+
+    %% Summation & Forecast
+    D --> SUM
+    TDR --> SUM
+    CDH --> SUM
+    SUM --> Y
+
+    %% Physics Penalty Feedback
+    P -. Training Penalty .-> D
+```
+
 Two mechanisms distinguish **PG-TiDE** from vanilla TiDE:
 
 1. **Structural** — an additive monotone thermal branch `CDH_future · |w_h|`
