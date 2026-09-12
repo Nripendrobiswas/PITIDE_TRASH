@@ -128,19 +128,40 @@ Notes:
 - Physics weights are search dimensions for `pinn`/`pg_tide`
   (`λ_thermal, λ_ramp ∈ [0.05, 5]`, log).
 
-## Pilot results (h = 24, 2024 test, mean of 3 seeds, default config)
+## Results (Kaggle GPU, tuned configs + `--use-tuned`, 2024 test, mean of 3 seeds)
 
-| model | MAE (MW) | RMSE | MAPE | neg. dD/dT rate (hot h) |
-|---|---|---|---|---|
-| Seasonal-Naive | 1318 | 1915 | 11.7% | — |
-| LSTM | 716 | 967 | 6.3% | 66% |
-| TiDE | 621 | 881 | 5.7% | 62% |
-| PINN | **557** | **802** | **5.0%** | **1.1%** |
-| PG-TiDE | 617 | 877 | 5.7% | **0.9%** |
+Test MAE (MW) by horizon — physics models are bolded, tuned λ per model/horizon
+in `results/best_params.json`:
 
-Main observations: the physics terms cut unphysical temperature responses by
-~60× with no accuracy loss; the PINN additionally improves accuracy over all
-baselines. Full multi-horizon matrix + λ-ablation to be completed on GPU.
+| model | h=24 | h=48 | h=72 | h=168 | neg. dD/dT (hot h) |
+|---|---|---|---|---|---|
+| Seasonal-Naive | 1318–1324 | 1321 | 1324 | 1324 | — |
+| LSTM | 741 | 848 | 900 | 1037 | 69–79% |
+| TiDE | 703 | 822 | 933 | 950 | 66–89% |
+| **PINN** | **531** | **623** | **723** | **908** | 3.7–6.3% |
+| **PG-TiDE** | 593 | 717 | 784 | 933 | **1.9–4.8%** |
+
+h=24 detail: PINN MAPE 4.87% / RMSE 774 vs TiDE 6.27% / 936; peak-hour MAE
+604 vs 785.
+
+Main findings:
+
+- **PG-TiDE beats vanilla TiDE at every horizon** (−15.7% MAE at 24 h,
+  −12.7% at 48 h, −16.0% at 72 h, −1.8% at 168 h); at h=72 physics guidance
+  lifts TiDE from below LSTM to well above it.
+- **PINN achieves the best accuracy at all horizons** with the lowest
+  seed-variance (MAE sd 18–55 vs 35–108 MW), i.e. physics regularization
+  also stabilizes generalization.
+- Physics terms cut unphysical negative temperature response ~15–45×
+  (66–89% → 2–6% of hot hours).
+- **λ ablation** (seed 1, `table_ablation.csv`): λ_thermal drives both
+  compliance (negsens 0.60 → 0.027 already at λ=1) and the accuracy/stability
+  effect; λ_ramp is nearly inert on accuracy because grid ramp violations are
+  rare by construction (limit = p99.9 of historical ΔDemand) — it acts as a
+  safety prior, which is the honest framing.
+- Tuned λ (≈ 0.2/0.7) beats default λ=1 on accuracy; note the accuracy↔
+  compliance trade-off: if compliance is the headline, tune with multi-
+  objective (val MAE + negsens) instead.
 
 ## Reproducing this study end-to-end (Kaggle GPU notebook)
 
