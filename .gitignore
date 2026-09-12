@@ -5,4 +5,5 @@ __pycache__/
 # generated outputs (regenerate with: python src/eda.py && python src/train.py --all && python src/report.py)
 # kept untracked so pulling on another machine (e.g. Kaggle) never conflicts with local runs
 results/
+KAGGLE/
 *.egg-info/
