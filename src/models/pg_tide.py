@@ -6,6 +6,7 @@ TiDE backbone + two physics mechanisms:
 2. Variational: the same physics losses used for the PINN (thermal sensitivity
    of the whole network + grid ramp-rate limits) are added to training loss.
 """
+
 import torch
 import torch.nn as nn
 

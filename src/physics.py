@@ -5,6 +5,7 @@ L_thermal : demand sensitivity to temperature must be non-negative in the hot
 L_ramp    : predicted hour-to-hour changes must respect the historical maximum
             ramp rate of the national grid (MW/h generator ramping limit).
 """
+
 import numpy as np  # noqa: F401  (used in thermal_violation_rate)
 import torch
 import torch.nn.functional as F
@@ -25,7 +26,9 @@ class PhysicsLoss:
         # cudnn-disabled: keeps this correct for RNN-containing backbones
         with torch.backends.cudnn.flags(enabled=False):
             out = model(xp, xf, s)
-            g = torch.autograd.grad(out.sum(), xp, create_graph=True)[0][..., IDX_T]  # (B,L)
+            g = torch.autograd.grad(out.sum(), xp, create_graph=True)[0][
+                ..., IDX_T
+            ]  # (B,L)
         raw_t = xp.detach()[..., IDX_T] * self.t_std + self.t_mean
         hot = raw_t > CDH_BASE
         denom = hot.sum().clamp(min=1)
@@ -58,9 +61,14 @@ def thermal_violation_rate(model, xp, xf, s, stats, batch=512, device="cpu"):
     # called in training mode"), so use the native PyTorch RNN path here.
     with torch.backends.cudnn.flags(enabled=False):
         for i in range(0, len(xp), batch):
-            xb = torch.as_tensor(np.asarray(xp[i:i + batch])).to(device).clone().requires_grad_(True)
-            xfb = torch.as_tensor(np.asarray(xf[i:i + batch])).to(device)
-            sb = torch.as_tensor(np.asarray(s[i:i + batch])).to(device)
+            xb = (
+                torch.as_tensor(np.asarray(xp[i : i + batch]))
+                .to(device)
+                .clone()
+                .requires_grad_(True)
+            )
+            xfb = torch.as_tensor(np.asarray(xf[i : i + batch])).to(device)
+            sb = torch.as_tensor(np.asarray(s[i : i + batch])).to(device)
             out = model(xb, xfb, sb)
             g = torch.autograd.grad(out.sum(), xb)[0][..., IDX_T]
             hot = (xb.detach()[..., IDX_T] * t_std + t_mean) > CDH_BASE

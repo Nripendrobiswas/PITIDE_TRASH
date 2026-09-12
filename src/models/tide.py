@@ -3,6 +3,7 @@
 Static covariate encoder + DNN encoder/decoder over flattened windows with
 residual connections + temporal dynamic regressor on known future covariates.
 """
+
 import torch
 import torch.nn as nn
 
@@ -10,8 +11,19 @@ from .common import ResBlock, add_cdh, mlp
 
 
 class TiDE(nn.Module):
-    def __init__(self, n_hist, n_fut, n_static, l_hist, h_out, stats,
-                 hidden=128, latent=128, n_res=2, dropout=0.1):
+    def __init__(
+        self,
+        n_hist,
+        n_fut,
+        n_static,
+        l_hist,
+        h_out,
+        stats,
+        hidden=128,
+        latent=128,
+        n_res=2,
+        dropout=0.1,
+    ):
         super().__init__()
         self.stats = stats
         self.n_fut1 = n_fut + 1

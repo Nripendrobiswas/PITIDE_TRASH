@@ -12,6 +12,7 @@ Best settings are merged into results/best_params.json (consumed by
 `python src/train.py --all --use-tuned`), full trial logs go to
 results/tuning_<model>_h<H>.csv.
 """
+
 import argparse
 import json
 import os
@@ -26,6 +27,7 @@ import train as T  # noqa: E402
 
 try:
     import optuna
+
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     HAS_OPTUNA = True
 except ImportError:
@@ -102,34 +104,56 @@ def tune(cfg, name, horizon, n_trials=10, seed=1, quick=False, epochs=8):
     def objective(trial):
         hp, lt, ls = search_space(trial, name, epochs)
         t0 = time.time()
-        r = T.run_one(cfg, name, horizon, seed, lam_t=lt or 0.0, lam_s=ls or 0.0,
-                      quick=quick, verbose=False, hp=hp)
-        row = {"trial": trial.number, "val_mae": round(r["val_mae"], 2),
-               "test_mae": round(r["test_mae"], 2), "sec": round(time.time() - t0, 1),
-               "lam_thermal": lt, "lam_smooth": ls}
+        r = T.run_one(
+            cfg,
+            name,
+            horizon,
+            seed,
+            lam_t=lt or 0.0,
+            lam_s=ls or 0.0,
+            quick=quick,
+            verbose=False,
+            hp=hp,
+        )
+        row = {
+            "trial": trial.number,
+            "val_mae": round(r["val_mae"], 2),
+            "test_mae": round(r["test_mae"], 2),
+            "sec": round(time.time() - t0, 1),
+            "lam_thermal": lt,
+            "lam_smooth": ls,
+        }
         row.update({f"hp_{k}": v for k, v in hp.items()})
         log_rows.append(row)
-        print(f"[{name} h={horizon}] trial {trial.number:3d}  val_MAE={row['val_mae']:8.1f}  "
-              f"test_MAE={row['test_mae']:8.1f}  lam=({lt}, {ls})  "
-              f"lr={hp['lr']:.2e} hid={hp['hidden']} bs={hp['batch_size']} "
-              f"[{row['sec']}s]", flush=True)
+        print(
+            f"[{name} h={horizon}] trial {trial.number:3d}  val_MAE={row['val_mae']:8.1f}  "
+            f"test_MAE={row['test_mae']:8.1f}  lam=({lt}, {ls})  "
+            f"lr={hp['lr']:.2e} hid={hp['hidden']} bs={hp['batch_size']} "
+            f"[{row['sec']}s]",
+            flush=True,
+        )
         return r["val_mae"]
 
     if HAS_OPTUNA:
-        study = optuna.create_study(direction="minimize",
-                                    sampler=optuna.samplers.TPESampler(seed=1234))
+        study = optuna.create_study(
+            direction="minimize", sampler=optuna.samplers.TPESampler(seed=1234)
+        )
     else:
         print("optuna not installed -> random search fallback")
         study = RandomSearch(seed=1234)
-    study.optimize(n_trials, objective) if isinstance(study, RandomSearch) \
+    (
+        study.optimize(n_trials, objective)
+        if isinstance(study, RandomSearch)
         else study.optimize(objective, n_trials=n_trials)
+    )
 
-    best = (min(log_rows, key=lambda r: r["val_mae"]) if log_rows else None)
+    best = min(log_rows, key=lambda r: r["val_mae"]) if log_rows else None
     if best is None:
         return None
 
     os.makedirs(cfg.results_dir, exist_ok=True)
     import csv
+
     tpath = os.path.join(cfg.results_dir, f"tuning_{name}_h{horizon}.csv")
     keys = list(log_rows[0])
     with open(tpath, "w", newline="") as f:
@@ -142,14 +166,22 @@ def tune(cfg, name, horizon, n_trials=10, seed=1, quick=False, epochs=8):
     hp = {k[3:]: v for k, v in best.items() if k.startswith("hp_")}
     hp.pop("epochs", None)  # final runs use full budget, not the tuning cap
     bp.setdefault(name, {})[str(horizon)] = {
-        "val_mae": best["val_mae"], "test_mae": best["test_mae"],
-        "lam_thermal": best["lam_thermal"], "lam_smooth": best["lam_smooth"],
-        "hp": hp, "quick": quick, "n_trials": n_trials, "optuna": HAS_OPTUNA}
+        "val_mae": best["val_mae"],
+        "test_mae": best["test_mae"],
+        "lam_thermal": best["lam_thermal"],
+        "lam_smooth": best["lam_smooth"],
+        "hp": hp,
+        "quick": quick,
+        "n_trials": n_trials,
+        "optuna": HAS_OPTUNA,
+    }
     os.makedirs(cfg.results_dir, exist_ok=True)
     with open(bp_path, "w") as f:
         json.dump(bp, f, indent=2)
-    print(f"best {name} h={horizon}: val_MAE={best['val_mae']}  "
-          f"lam=({best['lam_thermal']}, {best['lam_smooth']})  -> {bp_path}")
+    print(
+        f"best {name} h={horizon}: val_MAE={best['val_mae']}  "
+        f"lam=({best['lam_thermal']}, {best['lam_smooth']})  -> {bp_path}"
+    )
     return best
 
 
@@ -159,11 +191,18 @@ def main():
     ap.add_argument("--all", action="store_true", help="tune all trainable models")
     ap.add_argument("--horizon", type=int, default=24)
     ap.add_argument("--trials", type=int, default=10)
-    ap.add_argument("--epochs", type=int, default=8,
-                    help="epoch cap during tuning (final runs use config default)")
+    ap.add_argument(
+        "--epochs",
+        type=int,
+        default=8,
+        help="epoch cap during tuning (final runs use config default)",
+    )
     ap.add_argument("--seed", type=int, default=1)
-    ap.add_argument("--quick", action="store_true",
-                    help="subsample data (for testing the tuner itself)")
+    ap.add_argument(
+        "--quick",
+        action="store_true",
+        help="subsample data (for testing the tuner itself)",
+    )
     a = ap.parse_args()
     cfg = Config()
     names = ["tide", "pg_tide", "pinn", "lstm"] if a.all else [a.model]

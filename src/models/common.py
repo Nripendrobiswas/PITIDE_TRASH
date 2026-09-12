@@ -8,10 +8,7 @@ class ResBlock(nn.Module):
     def __init__(self, dim, dropout):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(dim, dim)
+            nn.Linear(dim, dim), nn.ReLU(), nn.Dropout(dropout), nn.Linear(dim, dim)
         )
 
     def forward(self, x):
