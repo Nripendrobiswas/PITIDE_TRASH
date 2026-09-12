@@ -13,7 +13,7 @@
 [![Optuna](https://img.shields.io/badge/Optuna-TPE%20tuning-6D0C71.svg)](https://optuna.org/)&nbsp;
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)&nbsp;
 [![Dataset](https://img.shields.io/badge/data-78,912_hours-brightgreen)](BangladeshData_2016_2024.csv)&nbsp;
-[![Paper / Preprint](https://img.shields.io/badge/Paper-coming_soon-red.svg?logo=adobeacrobatreader&logoColor=white)](#citation)
+[![Paper / Preprint](https://img.shields.io/badge/Paper-coming_soon-red.svg?logo=adobeacrobatreader&logoColor=white)](#-citation)
 
 > **TL;DR** — Adding two grid-physics penalties (thermal sensitivity `∂D/∂T ≥ 0` in
 > the hot regime + generator ramp-rate limits) to TiDE beats the vanilla backbone
@@ -30,13 +30,13 @@
 - [Why physics?](#-why-physics)
 - [Dataset](#-dataset)
 - [Problem setting](#-problem-setting)
-- [Method](#-method) · [PG-TiDE architecture](#-pg-tide-architecture)
+- [Method](#-method) · [PITiDE flow chart](#potide--pg-tide-flow-chart)
 - [Models](#-models)
 - [Results](#-results)
 - [Setup & experiments](#-setup--experiments)
 - [Repository layout](#-repository-layout)
 - [Citation](#-citation)
-- [Limitations](#-limitations)
+- [Limitations](#-limitations--honest-caveats)
 
 ## 🔥 Why physics?
 

@@ -11,12 +11,11 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import Config  # noqa: E402
-from data_pipeline import CDH_BASE, COL_SP, COL_RH, COL_T, load_frame  # noqa: E402
+from data_pipeline import CDH_BASE, COL_T, load_frame  # noqa: E402
 
 FIGS = os.path.join(Config().results_dir, "figures")
 
@@ -61,13 +60,13 @@ def main():
         f"hours with T > {CDH_BASE:.0f} C (hot regime): {(raw[COL_T] > CDH_BASE).mean() * 100:.1f}%"
     )
     lines.append(
-        f"annual peak demand (GW): "
+        "annual peak demand (GW): "
         + ", ".join(
             f"{y.year}: {v / 1000:.2f}" for y, v in d.resample("YE").max().items()
         )
     )
     lines.append(
-        f"annual min demand (GW): "
+        "annual min demand (GW): "
         + ", ".join(
             f"{y.year}: {v / 1000:.2f}" for y, v in d.resample("YE").min().items()
         )

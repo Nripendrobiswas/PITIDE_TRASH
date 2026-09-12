@@ -118,12 +118,6 @@ def build_feature_frame(df, stats=None):
     return X, S, stats
 
 
-def _range_idx(idx, start, end):
-    return int(idx.searchsorted(pd.Timestamp(start))), int(
-        idx.searchsorted(pd.Timestamp(end), side="right")
-    )
-
-
 def build_dataset(cfg: Config, horizon: int):
     """Zero-copy sliding windows -> dict of train/val/test tensors-as-arrays + meta."""
     df = load_frame(cfg.csv_path)
@@ -150,9 +144,12 @@ def build_dataset(cfg: Config, horizon: int):
     ok = t_origin + total - 1 < n
 
     def split2(start, end, stride):
-        i0, i1 = _range_idx(idx, start, end)
-        sel = t_origin[i0:i1:stride]
-        sel = sel[ok[sel]]
+        i0 = int(idx.searchsorted(pd.Timestamp(start)))
+        end_row = int(idx.searchsorted(pd.Timestamp(end) + pd.Timedelta("1 day"))) - 1
+        sel = t_origin[i0::stride]
+        # whole window (history + target) must fit inside [start, end] so that
+        # train/val targets never reach into the following split
+        sel = sel[(sel + total - 1 <= end_row) & ok[sel]]
         w = full[sel]  # zero-copy strided view
         return dict(
             xp=w[:, :L],

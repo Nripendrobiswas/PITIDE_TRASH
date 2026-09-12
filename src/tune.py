@@ -67,7 +67,10 @@ class RandomSearch:
 
     def optimize(self, n_trials, func, show_progress_bar=False):
         for i in range(n_trials):
-            func(RandomTrial(self.rng, i))
+            try:
+                func(RandomTrial(self.rng, i))
+            except Exception as e:  # keep the study alive on a failed trial
+                print(f"trial {i} failed: {e}")
 
     def best_trial(self):
         return None
@@ -144,7 +147,7 @@ def tune(cfg, name, horizon, n_trials=10, seed=1, quick=False, epochs=8):
     (
         study.optimize(n_trials, objective)
         if isinstance(study, RandomSearch)
-        else study.optimize(objective, n_trials=n_trials)
+        else study.optimize(objective, n_trials=n_trials, catch=(Exception,))
     )
 
     best = min(log_rows, key=lambda r: r["val_mae"]) if log_rows else None

@@ -26,7 +26,6 @@ from models.baselines import seasonal_naive  # noqa: E402
 
 torch.set_num_threads(os.cpu_count() or 4)
 _DS_CACHE = {}
-DL_MODELS = ("tide", "pg_tide", "pinn", "lstm")
 PHYSICS_MODELS = ("pg_tide", "pinn")
 
 
@@ -218,7 +217,7 @@ def run_one(
             os.path.join(cfg.results_dir, f"preds_{name}_h{horizon}_s{seed}.npz"),
             y=to_mw(te["y"], dmean, dstd),
             p=to_mw(pred, dmean, dstd),
-            t=te["t0"].asi8,
+            t=te["t0"].values.astype("int64"),
         )
     row["train_sec"] = round(time.time() - t0, 1)
     row["val_mse_scaled"] = round(best_val, 5)
@@ -372,11 +371,12 @@ def run_all(cfg, quick=False, use_tuned=False):
 
     df = pd.DataFrame(rows)
     df.to_csv(os.path.join(cfg.results_dir, "metrics_run.csv"), index=False)
-    print(
-        df[df.tag != "ablation"]
-        .pivot_table(index="model", columns="horizon", values="test_mae")
-        .round(1)
-    )
+    if len(df):
+        print(
+            df[df.tag != "ablation"]
+            .pivot_table(index="model", columns="horizon", values="test_mae")
+            .round(1)
+        )
 
 
 def main():
@@ -397,6 +397,8 @@ def main():
         help="use hyperparameters/lambdas from results/best_params.json (see src/tune.py)",
     )
     a = ap.parse_args()
+    if not a.all and not a.model:
+        ap.error("--model required unless --all is set")
     cfg = Config()
     if a.all:
         run_all(cfg, quick=a.quick, use_tuned=a.use_tuned)
