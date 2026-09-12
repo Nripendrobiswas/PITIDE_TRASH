@@ -104,6 +104,13 @@ pip install -r requirements.txt
 # Kaggle: torch with CUDA is preinstalled; device=auto picks it up.
 ```
 
+GPU support: tested on Kaggle T4; any CUDA GPU works, including P100
+(compute capability 6.0, within the sm_50+ range of prebuilt PyTorch CUDA
+wheels). The LSTM sensitivity diagnostic runs with cuDNN disabled, so the
+"cudnn RNN backward in eval mode" limitation does not apply. Note that
+per-seed numbers vary slightly between different GPU models — keep the same
+accelerator for the final paper tables.
+
 ## Running experiments
 
 ```bash
