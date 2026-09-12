@@ -1,8 +1,8 @@
 <div align="center">
 
-# ⚡ PITIDE — Physics-Informed TiDE for Electricity Demand Forecasting
+# PITiDE: Physics-Informed TiDE for Electricity Demand Forecasting
 
-### Physics-Guided TiDE (**PG-TiDE**) & PINN forecasting of the Bangladesh national grid, 2016–2024
+### Physics-Guided TiDE (**PG-TiDE**) & PINN forecasting of the Bangladesh national grid
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)&nbsp;
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg?logo=python&logoColor=white)](https://www.python.org/)&nbsp;
